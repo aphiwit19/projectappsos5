@@ -133,10 +133,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _viewHistory() {
+    debugPrint('ProfileScreen: Opening history screen');
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => HistoryScreen()),
-    );
+    ).then((value) {
+      debugPrint('ProfileScreen: Returned from history screen');
+    });
   }
 
   void _logout() async {

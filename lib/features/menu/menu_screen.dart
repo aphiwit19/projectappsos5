@@ -3,6 +3,7 @@ import '../../widgets/custom_bottom_navigation_bar.dart';
 import '../profile/profile_screen.dart';
 import '../emergency_contacts/emergency_contacts_screen.dart';
 import '../../screens/home_screen.dart';
+import '../../screens/chat_screen.dart';
 import 'emergency_phone_screen.dart';
 import 'first_aid_screen.dart';
 import 'news_screen.dart';
@@ -31,7 +32,10 @@ class MenuScreenState extends State<MenuScreen> {
         );
         break;
       case 1:
-        // ใส่โค้ดนำทางไปหน้าแชทที่นี่
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ChatScreen()),
+        );
         break;
       case 2:
         break;
