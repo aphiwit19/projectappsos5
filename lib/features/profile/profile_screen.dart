@@ -6,8 +6,8 @@ import '../../screens/history_screen.dart';
 import '../../screens/home_screen.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
 import '../auth/login_screen.dart';
-import '../emergency_numbers/emergency_numbers_screen.dart';
 import '../emergency_contacts/emergency_contacts_screen.dart';
+import '../menu/menu_screen.dart';
 import 'edit_profile_screen.dart';
 import '../../services/auth_service.dart';
 import '../../services/profile_service.dart';
@@ -574,7 +574,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             case 2:
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => EmergencyNumbersScreen()),
+                MaterialPageRoute(builder: (context) => MenuScreen()),
               );
               break;
             case 3:

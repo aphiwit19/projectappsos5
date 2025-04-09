@@ -6,6 +6,8 @@ import 'package:intl/intl.dart'; // เพิ่ม import สำหรับ in
 import 'package:intl/date_symbol_data_local.dart'; // เพิ่ม import สำหรับการเริ่มต้น locale
 import 'screens/splash_screen.dart';
 import 'scripts/seed_emergency_numbers.dart';
+import 'scripts/seed_first_aid.dart';
+import 'scripts/seed_news.dart';
 import 'services/background_service.dart';
 
 void main() async {
@@ -15,6 +17,10 @@ void main() async {
 
   // เพิ่มการ seed ข้อมูลเบอร์โทรฉุกเฉิน
   await seedEmergencyNumbers();
+  
+  // เพิ่มการ seed ข้อมูลปฐมพยาบาลและข่าวสาร
+  await seedFirstAidData();
+  await seedNewsData();
 
   // เริ่มต้น locale สำหรับ intl
   await initializeDateFormatting('th', null);

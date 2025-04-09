@@ -22,6 +22,7 @@ dependencies:
   shimmer: ^3.0.0
   flutter_background_service: ^5.0.5
   flutter_background_service_android: ^6.2.2
+  http: ^0.13.5
 
 dev_dependencies:
   flutter_test:

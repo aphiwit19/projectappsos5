@@ -271,4 +271,25 @@ class SosService {
       return [];
     }
   }
+  
+  Future<bool> deleteSosLog(String userId, String logId) async {
+    try {
+      final email = await _getEmailFromUserId(userId);
+      if (email == null) {
+        return false;
+      }
+
+      await _firestore
+          .collection('Users')
+          .doc(email)
+          .collection('sos_logs')
+          .doc(logId)
+          .delete();
+      
+      return true;
+    } on Exception catch (e) {
+      debugPrint('Error deleting SOS log: $e');
+      return false;
+    }
+  }
 }

@@ -56,6 +56,73 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
+  Future<void> _deleteSosLog(SosLog log) async {
+    try {
+      // แสดง dialog ยืนยันการลบ
+      bool? confirmDelete = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('ยืนยันการลบประวัติ'),
+          content: const Text('คุณต้องการลบประวัติการแจ้งเหตุนี้ใช่หรือไม่?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('ยกเลิก'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: TextButton.styleFrom(
+                foregroundColor: Color.fromRGBO(230, 70, 70, 1.0),
+              ),
+              child: const Text('ลบ'),
+            ),
+          ],
+        ),
+      );
+      
+      if (confirmDelete != true) {
+        return;
+      }
+      
+      setState(() {
+        _isRefreshing = true;
+      });
+      
+      String? userId = await AuthService().getUserId();
+      if (userId == null) {
+        throw Exception('ไม่พบรหัสผู้ใช้');
+      }
+      
+      bool success = await SosService().deleteSosLog(userId, log.id);
+      
+      if (success) {
+        // ลบรายการออกจากลิสต์โดยไม่ต้องโหลดใหม่ทั้งหมด
+        setState(() {
+          _sosLogs.removeWhere((item) => item.id == log.id);
+          _isRefreshing = false;
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ลบประวัติการแจ้งเหตุเรียบร้อยแล้ว')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('เกิดข้อผิดพลาดในการลบประวัติ กรุณาลองใหม่อีกครั้ง')),
+        );
+        setState(() {
+          _isRefreshing = false;
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('เกิดข้อผิดพลาด: $e')),
+      );
+      setState(() {
+        _isRefreshing = false;
+      });
+    }
+  }
+
   Future<void> _launchMap(double? latitude, double? longitude) async {
     if (latitude == null || longitude == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -256,23 +323,41 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Icon(
-                          Icons.warning,
-                          color: Color.fromRGBO(230, 70, 70, 1.0),
-                          size: 24,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            log.message,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Color.fromRGBO(
-                                  230, 70, 70, 1.0),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.warning,
+                              color: Color.fromRGBO(230, 70, 70, 1.0),
+                              size: 24,
                             ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                log.message,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Color.fromRGBO(
+                                      230, 70, 70, 1.0),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.delete,
+                            color: Color.fromRGBO(230, 70, 70, 0.7),
+                            size: 22,
                           ),
+                          onPressed: () {
+                            _deleteSosLog(log);
+                          },
+                          tooltip: 'ลบประวัติ',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
                       ],
                     ),

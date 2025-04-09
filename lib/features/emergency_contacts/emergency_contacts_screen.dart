@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/emergency_contact_model.dart';
 import '../../screens/chat_screen.dart';
+import '../menu/menu_screen.dart';
 import 'add_emergency_contact_screen.dart';
 import 'edit_emergency_contact_screen.dart';
 import '../../screens/home_screen.dart';
-import '../emergency_numbers/emergency_numbers_screen.dart';
+
 import '../profile/profile_screen.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
 import '../../services/emergency_contact_service.dart';
@@ -620,7 +621,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
             case 2:
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => EmergencyNumbersScreen()),
+                MaterialPageRoute(builder: (context) => MenuScreen()),
               );
               break;
             case 3:

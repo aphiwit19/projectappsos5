@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../screens/chat_screen.dart';
-import '../../screens/home_screen.dart';
-import '../../widgets/custom_bottom_navigation_bar.dart';
-import '../emergency_contacts/emergency_contacts_screen.dart';
-import '../profile/profile_screen.dart';
 import '../../services/emergency_number_service.dart';
 import '../../models/emergency_number_model.dart';
+import '../../widgets/custom_bottom_navigation_bar.dart';
+import '../profile/profile_screen.dart';
+import '../emergency_contacts/emergency_contacts_screen.dart';
+import '../../screens/home_screen.dart';
+import 'menu_screen.dart';
 
-class EmergencyNumbersScreen extends StatefulWidget {
+class EmergencyPhoneScreen extends StatefulWidget {
+  const EmergencyPhoneScreen({Key? key}) : super(key: key);
+
   @override
-  _EmergencyNumbersScreenState createState() => _EmergencyNumbersScreenState();
+  EmergencyPhoneScreenState createState() => EmergencyPhoneScreenState();
 }
 
-class _EmergencyNumbersScreenState extends State<EmergencyNumbersScreen> {
+class EmergencyPhoneScreenState extends State<EmergencyPhoneScreen> {
   final EmergencyNumberService _emergencyNumberService = EmergencyNumberService();
   List<EmergencyNumber> emergencyNumbers = [];
   List<String> categories = [];
+  bool isLoading = true;
+  int _currentIndex = 2;
 
   @override
   void initState() {
@@ -27,20 +31,65 @@ class _EmergencyNumbersScreenState extends State<EmergencyNumbersScreen> {
 
   Future<void> _loadEmergencyNumbers() async {
     try {
+      setState(() {
+        isLoading = true;
+      });
       final numbers = await _emergencyNumberService.getEmergencyNumbers();
       setState(() {
-        emergencyNumbers = numbers;
-        for (var number in numbers) {
+        emergencyNumbers = numbers.where((number) =>
+        number.category != "แจ้งเหตุจราจร-ขอความช่วยเหลือ").toList();
+
+        categories = [];
+        for (var number in emergencyNumbers) {
           if (!categories.contains(number.category)) {
             categories.add(number.category);
           }
         }
+        isLoading = false;
         print('Categories order: $categories');
       });
     } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('เกิดข้อผิดพลาด: $e')),
       );
+    }
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+        break;
+      case 1:
+        // แชท
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MenuScreen()),
+        );
+        break;
+      case 3:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const EmergencyContactsScreen()),
+        );
+        break;
+      case 4:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ProfileScreen()),
+        );
+        break;
     }
   }
 
@@ -102,7 +151,6 @@ class _EmergencyNumbersScreenState extends State<EmergencyNumbersScreen> {
 
           if (confirm == true) {
             final Uri dialUri = Uri.parse('tel:$number');
-
             try {
               print('Attempting to open dialer: $dialUri');
               if (await canLaunchUrl(dialUri)) {
@@ -130,9 +178,9 @@ class _EmergencyNumbersScreenState extends State<EmergencyNumbersScreen> {
   }
 
   Widget _buildEmergencyNumberList() {
-    if (emergencyNumbers.isEmpty) {
+    if (isLoading) {
       return ListView(
-        padding: EdgeInsets.fromLTRB(20, 50, 20, 20),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
         children: List.generate(3, (index) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +203,7 @@ class _EmergencyNumbersScreenState extends State<EmergencyNumbersScreen> {
                   ),
                 ),
               ),
-              ...List.generate(2, (i) {
+              ...List.generate(3, (i) {
                 return Shimmer.fromColors(
                   baseColor: Colors.grey[300]!,
                   highlightColor: Colors.grey[100]!,
@@ -163,31 +211,46 @@ class _EmergencyNumbersScreenState extends State<EmergencyNumbersScreen> {
                     margin: EdgeInsets.only(top: 10),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.3),
-                          spreadRadius: 2,
-                          blurRadius: 5,
-                          offset: Offset(0, 3),
+                          color: Colors.grey.withOpacity(0.06),
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
                         ),
                       ],
                     ),
-                    child: ListTile(
-                      leading: Container(
-                        width: 24,
-                        height: 24,
-                        color: Colors.white,
-                      ),
-                      title: Container(
-                        width: 150,
-                        height: 16,
-                        color: Colors.white,
-                      ),
-                      trailing: Container(
-                        width: 80,
-                        height: 16,
-                        color: Colors.white,
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          SizedBox(width: 15),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 150,
+                                  height: 16,
+                                  color: Colors.white,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            width: 80,
+                            height: 20,
+                            color: Colors.white,
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -197,6 +260,38 @@ class _EmergencyNumbersScreenState extends State<EmergencyNumbersScreen> {
             ],
           );
         }),
+      );
+    }
+
+    if (emergencyNumbers.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              size: 60,
+              color: Colors.grey,
+            ),
+            SizedBox(height: 20),
+            Text(
+              'ไม่พบข้อมูลเบอร์โทรฉุกเฉิน',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _loadEmergencyNumbers,
+              child: Text('ลองใหม่อีกครั้ง'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFE64646),
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -237,11 +332,10 @@ class _EmergencyNumbersScreenState extends State<EmergencyNumbersScreen> {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(244, 244, 244, 1.0),
       appBar: AppBar(
-        backgroundColor: const Color.fromRGBO(230, 70, 70, 1.0),
+        backgroundColor: Color(0xFFE64646),
         elevation: 0,
-        automaticallyImplyLeading: false,
         title: const Text(
-          "เบอร์ฉุกเฉิน",
+          "เบอร์โทรฉุกเฉิน",
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
@@ -249,40 +343,15 @@ class _EmergencyNumbersScreenState extends State<EmergencyNumbersScreen> {
           ),
         ),
         centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: _buildEmergencyNumberList(),
       bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: 2,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
-              );
-              break;
-            case 1:
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => ChatScreen()),
-              );
-              break;
-            case 2:
-              break;
-            case 3:
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => EmergencyContactsScreen()),
-              );
-              break;
-            case 4:
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => ProfileScreen()),
-              );
-              break;
-          }
-        },
+        currentIndex: _currentIndex,
+        onTap: _onItemTapped,
       ),
     );
   }

@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import '../features/menu/menu_screen.dart';
 import '../screens/home_screen.dart';
 import '../features/emergency_contacts/emergency_contacts_screen.dart';
-import '../features/emergency_numbers/emergency_numbers_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../widgets/custom_bottom_navigation_bar.dart';
 import 'chat_detail_screen.dart';
@@ -526,7 +526,7 @@ class _ChatScreenState extends State<ChatScreen> {
             case 2:
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => EmergencyNumbersScreen()),
+                MaterialPageRoute(builder: (context) => MenuScreen()),
               );
               break;
             case 3:

@@ -134,13 +134,15 @@ class CustomBottomNavigationBar extends StatelessWidget {
         unselectedItemColor: Colors.grey[600],
         showSelectedLabels: true,
         showUnselectedLabels: true,
-        selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+        selectedLabelStyle: TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: TextStyle(fontSize: 10, fontWeight: FontWeight.w400),
+        elevation: 8,
+        iconSize: 24,
         items: [
           BottomNavigationBarItem(
             icon: Icon(
               Icons.home,
-              size: 26,
+              size: 24,
             ),
             label: 'หน้าแรก',
           ),
@@ -149,7 +151,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
               children: [
                 Icon(
                   Icons.chat_bubble,
-                  size: 26,
+                  size: 24,
                 ),
                 if (unreadCount > 0)
                   Positioned(
@@ -163,15 +165,15 @@ class CustomBottomNavigationBar extends StatelessWidget {
                         border: Border.all(color: Colors.white, width: 1.5),
                       ),
                       constraints: BoxConstraints(
-                        minWidth: 20,
-                        minHeight: 20,
+                        minWidth: 18,
+                        minHeight: 18,
                       ),
                       child: Center(
                         child: Text(
                           '$unreadCount',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 10,
+                            fontSize: 9,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
@@ -185,22 +187,22 @@ class CustomBottomNavigationBar extends StatelessWidget {
           ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.phone,
-              size: 26,
+                Icons.menu_rounded,
+                size: 24
             ),
-            label: 'เบอร์ฉุกเฉิน',
+            label: 'เมนู',
           ),
           BottomNavigationBarItem(
             icon: Icon(
               Icons.contacts,
-              size: 26,
+              size: 24,
             ),
             label: 'ผู้ติดต่อ',
           ),
           BottomNavigationBarItem(
             icon: Icon(
               Icons.person,
-              size: 26,
+              size: 24,
             ),
             label: 'โปรไฟล์',
           ),

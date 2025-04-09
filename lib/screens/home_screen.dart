@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../features/menu/menu_screen.dart';
 import '../services/fall_detection_service.dart';
 import '../features/sos/sos_confirmation_screen.dart';
-import '../features/emergency_numbers/emergency_numbers_screen.dart';
 import '../features/emergency_contacts/emergency_contacts_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../widgets/custom_bottom_navigation_bar.dart';
@@ -145,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
               case 2:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => EmergencyNumbersScreen()),
+                  MaterialPageRoute(builder: (context) => MenuScreen()),
                 );
                 break;
               case 3:
