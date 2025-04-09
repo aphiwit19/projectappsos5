@@ -15,14 +15,31 @@ class SosConfirmationScreen extends StatefulWidget {
   _SosConfirmationScreenState createState() => _SosConfirmationScreenState();
 }
 
-class _SosConfirmationScreenState extends State<SosConfirmationScreen> {
+class _SosConfirmationScreenState extends State<SosConfirmationScreen> with SingleTickerProviderStateMixin {
   int _countdown = 5;
   Timer? _timer;
   bool _isSending = false;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
+    
+    // สร้างเอนิเมชันสำหรับเอฟเฟกต์เต้นตามจังหวะ
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
+    
+    _pulseController.repeat(reverse: true);
     _startCountdown();
   }
 
@@ -74,7 +91,11 @@ class _SosConfirmationScreenState extends State<SosConfirmationScreen> {
       // แสดงข้อความแจ้งเตือน
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('ส่ง SOS เรียบร้อยแล้ว')),
+          const SnackBar(
+            content: Text('ส่ง SOS เรียบร้อยแล้ว'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
         );
       }
 
@@ -90,7 +111,11 @@ class _SosConfirmationScreenState extends State<SosConfirmationScreen> {
       print('Failed to send SOS: $errorMessage');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('เกิดข้อผิดพลาด: $errorMessage')),
+          SnackBar(
+            content: Text('เกิดข้อผิดพลาด: $errorMessage'),
+            backgroundColor: Colors.red[700],
+            duration: const Duration(seconds: 3),
+          ),
         );
         // กลับไปหน้า HomeScreen แม้จะเกิดข้อผิดพลาด
         Navigator.pushReplacement(
@@ -116,6 +141,7 @@ class _SosConfirmationScreenState extends State<SosConfirmationScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -129,64 +155,89 @@ class _SosConfirmationScreenState extends State<SosConfirmationScreen> {
           child: Center(
             child: _isSending
                 ? const CircularProgressIndicator(
-              color: Colors.white,
-            )
-                : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  "SOS ฉุกเฉิน",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
                     color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                  ),
-                  child: Center(
-                    child: Text(
-                      "$_countdown",
-                      style: const TextStyle(
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromRGBO(230, 70, 70, 1.0),
-                      ),
+                    strokeWidth: 6,
+                  )
+                : Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "SOS ฉุกเฉิน",
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        const Text(
+                          "ระบบจะส่งข้อมูลตำแหน่งและข้อมูลส่วนตัวถึงผู้ติดต่อฉุกเฉินเมื่อหมดเวลลานับถอยหลัง",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 40),
+                        // วงกลมเต้นตามจังหวะพร้อมตัวเลขนับถอยหลัง
+                        AnimatedBuilder(
+                          animation: _pulseAnimation,
+                          builder: (context, child) {
+                            return Transform.scale(
+                              scale: _pulseAnimation.value,
+                              child: Container(
+                                width: 120,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.red.withOpacity(0.5),
+                                      spreadRadius: 5,
+                                      blurRadius: 15,
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "$_countdown",
+                                    style: const TextStyle(
+                                      fontSize: 50,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color.fromRGBO(230, 70, 70, 1.0),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 50),
+                        ElevatedButton(
+                          onPressed: _cancelSOS,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: const Color.fromRGBO(230, 70, 70, 1.0),
+                            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          child: const Text(
+                            "ยกเลิก",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  "ระบบจะส่งข้อมูลตำแหน่งที่อยู่ถึงผู้ติดต่อฉุกเฉิน เมื่อสิ้นสุดการนับถอยหลัง",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 50),
-                ElevatedButton(
-                  onPressed: _cancelSOS,
-                  child: const Text(
-                    "ยกเลิก",
-                    style: TextStyle(fontSize: 18, color: Color.fromRGBO(230, 70, 70, 1.0)),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
         ),
       ),
