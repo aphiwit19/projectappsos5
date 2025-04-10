@@ -36,8 +36,13 @@ void main() async {
 Future<void> _requestPermissions() async {
   await [
     Permission.location,
+    Permission.locationAlways,
+    Permission.locationWhenInUse,
     Permission.sms,
+    Permission.notification,
   ].request();
+  
+  
 }
 
 class MyApp extends StatelessWidget {

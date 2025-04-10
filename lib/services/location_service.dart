@@ -23,7 +23,7 @@ class LocationService {
         // ถ้ามีข้อมูลตำแหน่งล่าสุดจาก background service
         return docSnapshot.data();
       }
-      
+
       // ถ้าไม่มีข้อมูล ให้คืนค่า null
       return null;
     } catch (e) {
@@ -55,21 +55,21 @@ class LocationService {
       throw Exception('เกิดข้อผิดพลาดในการดึงตำแหน่ง: $e');
     }
   }
-  
+
   // ฟังก์ชันสำหรับเรียกใช้จากที่อื่นๆ ในแอพ - จะพยายามใช้ตำแหน่งล่าสุดก่อน
   // ถ้าไม่มีหรือนานเกินไป จะเรียกดึงตำแหน่งใหม่
   Future<Position?> getBestLocation({required context}) async {
     try {
       // ลองดึงตำแหน่งล่าสุดจาก background service ก่อน
       final lastLocation = await getLastKnownLocation();
-      
+
       if (lastLocation != null) {
         // ตรวจสอบเวลาที่บันทึก ถ้าไม่เกิน 2 นาที ใช้ตำแหน่งนี้ได้
         final timestamp = lastLocation['timestamp'] as Timestamp?;
         if (timestamp != null) {
           final now = DateTime.now();
           final diff = now.difference(timestamp.toDate());
-          
+
           if (diff.inMinutes < 2) {
             // ตำแหน่งยังใหม่พอ สร้าง Position object จากข้อมูลใน Firestore
             return Position.fromMap({
@@ -85,12 +85,40 @@ class LocationService {
           }
         }
       }
-      
+
       // ถ้าไม่มีตำแหน่งล่าสุดหรือนานเกินไป ดึงตำแหน่งใหม่
       return await getCurrentLocation(context: context);
     } catch (e) {
       print('Error getting best location: $e');
       return null;
     }
+  }
+
+  // เพิ่มเมธอด getCurrentPosition เพื่อดึงตำแหน่งปัจจุบัน
+  Future<Position> getCurrentPosition() async {
+    // ตรวจสอบสิทธิ์การเข้าถึงตำแหน่ง
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw Exception('Location permission denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception('Location permissions are permanently denied');
+    }
+
+    // ตรวจสอบว่า location service เปิดอยู่หรือไม่
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception('Location services are disabled');
+    }
+
+    // ดึงตำแหน่งปัจจุบัน
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+      timeLimit: const Duration(seconds: 10),
+    );
   }
 }

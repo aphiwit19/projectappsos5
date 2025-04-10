@@ -5,9 +5,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'firebase_service.dart';
 
 Future<void> initializeService() async {
+  // ตรวจสอบและขอสิทธิ์ที่จำเป็น
+  await _checkAndRequestPermissions();
+  
   final service = FlutterBackgroundService();
 
   await service.configure(
@@ -16,8 +20,8 @@ Future<void> initializeService() async {
       autoStart: true,
       isForegroundMode: true,
       notificationChannelId: 'appsos_foreground',
-      initialNotificationTitle: 'AppSOS Service',
-      initialNotificationContent: 'Service is starting...',
+      initialNotificationTitle: 'แอพ SOS กำลังติดตามตำแหน่ง',
+      initialNotificationContent: 'บริการกำลังเริ่มทำงาน...',
       foregroundServiceNotificationId: 888,
     ),
     iosConfiguration: IosConfiguration(
@@ -30,14 +34,40 @@ Future<void> initializeService() async {
   await service.startService();
 }
 
+// เพิ่มฟังก์ชันตรวจสอบและขอสิทธิ์เพิ่มเติม
+Future<void> _checkAndRequestPermissions() async {
+  // ตรวจสอบสิทธิ์การเข้าถึงตำแหน่ง
+  var locationStatus = await Permission.locationWhenInUse.status;
+  if (!locationStatus.isGranted) {
+    locationStatus = await Permission.locationWhenInUse.request();
+  }
+  
+  // ถ้าได้รับสิทธิ์พื้นฐานแล้ว ให้ขอสิทธิ์สำหรับการทำงานในพื้นหลัง
+  if (locationStatus.isGranted) {
+    var backgroundStatus = await Permission.locationAlways.status;
+    if (!backgroundStatus.isGranted) {
+      backgroundStatus = await Permission.locationAlways.request();
+    }
+    
+    // สำหรับ Android 10+ ใช้ locationAlways แทน backgroundLocation
+  }
+  
+  // ตรวจสอบว่า location service เปิดอยู่หรือไม่
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    // แนะนำให้ผู้ใช้เปิด location service
+    print('Location services are disabled. Please enable for background tracking.');
+  }
+}
+
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   try {
     if (service is AndroidServiceInstance) {
       await service.setAsForegroundService();
       await service.setForegroundNotificationInfo(
-        title: "AppSOS is Running",
-        content: "Monitoring for emergencies...",
+        title: "แอพ SOS กำลังติดตามตำแหน่ง",
+        content: "บริการกำลังติดตามตำแหน่งของคุณ",
       );
     }
 
@@ -117,8 +147,8 @@ void onStart(ServiceInstance service) async {
       if (service is AndroidServiceInstance) {
         if (await service.isForegroundService()) {
           await service.setForegroundNotificationInfo(
-            title: "AppSOS Service",
-            content: "Service is running ${DateTime.now()}",
+            title: "แอพ SOS กำลังติดตามตำแหน่ง",
+            content: "บริการกำลังทำงานในพื้นหลัง ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}",
           );
         }
       }
@@ -133,8 +163,8 @@ void onStart(ServiceInstance service) async {
     print('Error in background service: $e');
     if (service is AndroidServiceInstance) {
       await service.setForegroundNotificationInfo(
-        title: "AppSOS Service",
-        content: "Service is running with limited functionality",
+        title: "แอพ SOS กำลังทำงาน",
+        content: "บริการกำลังทำงานในโหมดจำกัด",
       );
     }
   }
